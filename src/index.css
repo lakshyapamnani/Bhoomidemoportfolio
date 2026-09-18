@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #12395D;
+  --deep-blue: #173B5D;
+  --blue: #315D7E;
+  --muted-blue: #6F8DA5;
+  --paper: #F5F1E8;
+  --cream: #E9E2D5;
+  --ink: #173A5D;
+  --white: #FFFFFF;
+}
+
+/* Custom Typography Utilities */
+.font-display {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-script {
+  font-family: 'Allura', cursive;
+}
+
+.font-body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Smooth Scrolling & Selection */
+html {
+  scroll-behavior: smooth;
+  color: var(--ink);
+  background-color: var(--paper);
+}
+
+::selection {
+  background-color: var(--navy);
+  color: var(--paper);
+}
+
+/* Paper noise texture overlay */
+.bg-paper-grain {
+  background-image: radial-gradient(rgba(23, 59, 93, 0.04) 1px, transparent 0);
+  background-size: 16px 16px;
+}
+
+.bg-dark-paper-grain {
+  background-image: radial-gradient(rgba(245, 241, 232, 0.06) 1px, transparent 0);
+  background-size: 16px 16px;
+}
+
+/* Torn paper edge generators using SVG data masks and clip-paths */
+.torn-edge-top {
+  clip-path: polygon(
+    0% 24px,
+    2% 8px, 4% 20px, 7% 6px, 9% 22px, 12% 10px, 15% 24px, 18% 8px, 21% 20px,
+    24% 10px, 27% 24px, 30% 9px, 33% 22px, 36% 7px, 39% 23px, 42% 11px, 45% 25px,
+    48% 9px, 51% 22px, 54% 8px, 57% 24px, 60% 12px, 63% 25px, 66% 9px, 69% 23px,
+    72% 7px, 75% 22px, 78% 10px, 81% 25px, 84% 9px, 87% 23px, 90% 8px, 93% 24px,
+    96% 11px, 98% 22px, 100% 9px,
+    100% 100%, 0% 100%
+  );
+}
+
+.torn-edge-bottom {
+  clip-path: polygon(
+    0% 0%, 100% 0%,
+    100% calc(100% - 24px),
+    98% calc(100% - 8px), 96% calc(100% - 22px), 93% calc(100% - 9px), 90% calc(100% - 24px),
+    87% calc(100% - 7px), 84% calc(100% - 23px), 81% calc(100% - 10px), 78% calc(100% - 25px),
+    75% calc(100% - 8px), 72% calc(100% - 23px), 69% calc(100% - 11px), 66% calc(100% - 24px),
+    63% calc(100% - 9px), 60% calc(100% - 22px), 57% calc(100% - 8px), 54% calc(100% - 25px),
+    51% calc(100% - 10px), 48% calc(100% - 23px), 45% calc(100% - 7px), 42% calc(100% - 24px),
+    39% calc(100% - 11px), 36% calc(100% - 25px), 33% calc(100% - 9px), 30% calc(100% - 22px),
+    27% calc(100% - 8px), 24% calc(100% - 24px), 21% calc(100% - 12px), 18% calc(100% - 25px),
+    15% calc(100% - 9px), 12% calc(100% - 23px), 9% calc(100% - 7px), 7% calc(100% - 22px),
+    4% calc(100% - 10px), 2% calc(100% - 24px), 0% calc(100% - 9px)
+  );
+}
+
+/* Washi Tape Component Styles */
+.washi-strip {
+  background: rgba(245, 241, 232, 0.82);
+  backdrop-filter: blur(2px);
+  border: 1px dashed rgba(49, 93, 126, 0.25);
+  box-shadow: 0 2px 5px rgba(18, 57, 93, 0.08);
+}
+
+.washi-strip-navy {
+  background: rgba(49, 93, 126, 0.85);
+  backdrop-filter: blur(2px);
+  border: 1px dashed rgba(245, 241, 232, 0.4);
+  box-shadow: 0 2px 6px rgba(18, 57, 93, 0.15);
+}
+
+/* Serrated postage edge */
+.postage-border {
+  background-image: radial-gradient(circle at 0px 50%, transparent 6px, #E9E2D5 6px),
+                    radial-gradient(circle at 100% 50%, transparent 6px, #E9E2D5 6px);
+  background-size: 100% 24px;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F1E8;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #315D7E;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #173B5D;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
