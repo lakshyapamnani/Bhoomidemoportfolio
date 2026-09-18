@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, MessageCircle, Instagram, Send, CheckCircle, ArrowRight } from 'lucide-react';
+import { Mail, MessageCircle, Instagram, CheckCircle, ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { TornPaper } from '../common/TornPaper';
 import { Sticker } from '../common/Sticker';
 import { Tape } from '../common/Tape';
@@ -7,6 +7,9 @@ import { Button } from '../common/Button';
 
 export const Contact: React.FC = () => {
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,10 +18,73 @@ export const Contact: React.FC = () => {
     message: ''
   });
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+
+  const validateField = (name: string, value: string): string => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) return 'Full name is required';
+        if (value.trim().length < 2) return 'Please enter at least 2 characters';
+        return '';
+      case 'email':
+        if (!value.trim()) return 'Email address is required';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+          return 'Please provide a valid email format (e.g., name@domain.com)';
+        }
+        return '';
+      case 'message':
+        if (!value.trim()) return 'Please share a brief note about your project';
+        if (value.trim().length < 10) return 'Please provide at least 10 characters so I can understand your vision';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const error = validateField(field, formData[field as keyof typeof formData]);
+    setErrors((prev) => ({ ...prev, [field]: error }));
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (touched[field]) {
+      const error = validateField(field, value);
+      setErrors((prev) => ({ ...prev, [field]: error }));
+    }
+    if (submitError) setSubmitError(null);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Real interactive form state
-    setFormSubmitted(true);
+
+    // Validate all required fields
+    const nameErr = validateField('name', formData.name);
+    const emailErr = validateField('email', formData.email);
+    const msgErr = validateField('message', formData.message);
+
+    const newErrors: { [key: string]: string } = {};
+    if (nameErr) newErrors.name = nameErr;
+    if (emailErr) newErrors.email = emailErr;
+    if (msgErr) newErrors.message = msgErr;
+
+    setTouched({ name: true, email: true, message: true, brand: true, service: true });
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    // Simulated robust submission
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setFormSubmitted(true);
+    }, 600);
   };
 
   return (
@@ -172,7 +238,7 @@ export const Contact: React.FC = () => {
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+                <form onSubmit={handleSubmit} noValidate className="space-y-4 sm:space-y-5">
                   <div className="border-b border-[#315D7E]/20 pb-4 mb-2">
                     <span className="font-mono text-[10px] uppercase tracking-widest text-[#6F8DA5] block">
                       Inquiry Dossier
@@ -182,55 +248,96 @@ export const Contact: React.FC = () => {
                     </h3>
                   </div>
 
+                  {/* Submission Error Alert if any */}
+                  {submitError && (
+                    <div className="p-3.5 bg-[#FDF2F2] border border-[#A83232]/30 flex items-start gap-3">
+                      <AlertCircle className="w-4 h-4 text-[#A83232] mt-0.5 shrink-0" />
+                      <div className="space-y-1 text-xs">
+                        <p className="font-semibold text-[#A83232]">Transmission Encountered an Issue</p>
+                        <p className="text-[#315D7E]">{submitError}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Name field */}
                   <div>
-                    <label className="block font-body text-xs font-semibold uppercase tracking-wider text-[#173B5D] mb-1">
-                      Full Name *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label htmlFor="contact-name" className="block font-body text-xs font-semibold uppercase tracking-wider text-[#173B5D]">
+                        Full Name *
+                      </label>
+                      {touched.name && errors.name && (
+                        <span className="flex items-center gap-1 font-mono text-[11px] text-[#A83232]">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.name}
+                        </span>
+                      )}
+                    </div>
                     <input
+                      id="contact-name"
                       type="text"
-                      required
                       placeholder="e.g. Sarah Jenkins"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white border border-[#315D7E]/30 focus:border-[#173B5D] focus:ring-1 focus:ring-[#173B5D] font-body text-sm text-[#173A5D] placeholder:text-gray-400 focus:outline-hidden"
+                      onChange={(e) => handleChange('name', e.target.value)}
+                      onBlur={() => handleBlur('name')}
+                      className={`w-full px-3.5 py-2.5 font-body text-sm text-[#173A5D] placeholder:text-gray-400 focus:outline-hidden transition-colors ${
+                        touched.name && errors.name
+                          ? 'bg-[#FDF7F7] border border-[#A83232] focus:border-[#A83232] focus:ring-1 focus:ring-[#A83232]'
+                          : 'bg-white border border-[#315D7E]/30 focus:border-[#173B5D] focus:ring-1 focus:ring-[#173B5D]'
+                      }`}
                     />
                   </div>
 
+                  {/* Email field */}
                   <div>
-                    <label className="block font-body text-xs font-semibold uppercase tracking-wider text-[#173B5D] mb-1">
-                      Email Address *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label htmlFor="contact-email" className="block font-body text-xs font-semibold uppercase tracking-wider text-[#173B5D]">
+                        Email Address *
+                      </label>
+                      {touched.email && errors.email && (
+                        <span className="flex items-center gap-1 font-mono text-[11px] text-[#A83232]">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.email}
+                        </span>
+                      )}
+                    </div>
                     <input
+                      id="contact-email"
                       type="email"
-                      required
                       placeholder="sarah@yourbrand.com"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white border border-[#315D7E]/30 focus:border-[#173B5D] focus:ring-1 focus:ring-[#173B5D] font-body text-sm text-[#173A5D] placeholder:text-gray-400 focus:outline-hidden"
+                      onChange={(e) => handleChange('email', e.target.value)}
+                      onBlur={() => handleBlur('email')}
+                      className={`w-full px-3.5 py-2.5 font-body text-sm text-[#173A5D] placeholder:text-gray-400 focus:outline-hidden transition-colors ${
+                        touched.email && errors.email
+                          ? 'bg-[#FDF7F7] border border-[#A83232] focus:border-[#A83232] focus:ring-1 focus:ring-[#A83232]'
+                          : 'bg-white border border-[#315D7E]/30 focus:border-[#173B5D] focus:ring-1 focus:ring-[#173B5D]'
+                      }`}
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-body text-xs font-semibold uppercase tracking-wider text-[#173B5D] mb-1">
+                      <label htmlFor="contact-brand" className="block font-body text-xs font-semibold uppercase tracking-wider text-[#173B5D] mb-1">
                         Your Brand / Instagram
                       </label>
                       <input
+                        id="contact-brand"
                         type="text"
                         placeholder="@brand.studio"
                         value={formData.brand}
-                        onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                        onChange={(e) => handleChange('brand', e.target.value)}
                         className="w-full px-3.5 py-2.5 bg-white border border-[#315D7E]/30 focus:border-[#173B5D] focus:ring-1 focus:ring-[#173B5D] font-body text-sm text-[#173A5D] placeholder:text-gray-400 focus:outline-hidden"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-body text-xs font-semibold uppercase tracking-wider text-[#173B5D] mb-1">
+                      <label htmlFor="contact-service" className="block font-body text-xs font-semibold uppercase tracking-wider text-[#173B5D] mb-1">
                         Service of Interest
                       </label>
                       <select
+                        id="contact-service"
                         value={formData.service}
-                        onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+                        onChange={(e) => handleChange('service', e.target.value)}
                         className="w-full px-3.5 py-2.5 bg-white border border-[#315D7E]/30 focus:border-[#173B5D] focus:ring-1 focus:ring-[#173B5D] font-body text-sm text-[#173A5D] focus:outline-hidden"
                       >
                         <option>Social Media Management</option>
@@ -241,16 +348,31 @@ export const Contact: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Message field */}
                   <div>
-                    <label className="block font-body text-xs font-semibold uppercase tracking-wider text-[#173B5D] mb-1">
-                      What goals would you love to accomplish together?
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label htmlFor="contact-message" className="block font-body text-xs font-semibold uppercase tracking-wider text-[#173B5D]">
+                        What goals would you love to accomplish together? *
+                      </label>
+                      {touched.message && errors.message && (
+                        <span className="flex items-center gap-1 font-mono text-[11px] text-[#A83232]">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.message}
+                        </span>
+                      )}
+                    </div>
                     <textarea
+                      id="contact-message"
                       rows={3}
                       placeholder="Tell me about your current milestones, ideal audience, or the aesthetic you envision..."
                       value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white border border-[#315D7E]/30 focus:border-[#173B5D] focus:ring-1 focus:ring-[#173B5D] font-body text-sm text-[#173A5D] placeholder:text-gray-400 focus:outline-hidden resize-none"
+                      onChange={(e) => handleChange('message', e.target.value)}
+                      onBlur={() => handleBlur('message')}
+                      className={`w-full px-3.5 py-2.5 font-body text-sm text-[#173A5D] placeholder:text-gray-400 focus:outline-hidden resize-none transition-colors ${
+                        touched.message && errors.message
+                          ? 'bg-[#FDF7F7] border border-[#A83232] focus:border-[#A83232] focus:ring-1 focus:ring-[#A83232]'
+                          : 'bg-white border border-[#315D7E]/30 focus:border-[#173B5D] focus:ring-1 focus:ring-[#173B5D]'
+                      }`}
                     />
                   </div>
 
@@ -259,9 +381,9 @@ export const Contact: React.FC = () => {
                     variant="primary"
                     size="lg"
                     className="w-full mt-2"
-                    icon={<ArrowRight className="w-4 h-4" />}
+                    icon={isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
                   >
-                    Send Inquiry
+                    {isSubmitting ? 'Transmitting Dossier...' : 'Send Inquiry'}
                   </Button>
                 </form>
               )}
